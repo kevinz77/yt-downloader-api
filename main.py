@@ -1,8 +1,7 @@
 from flask import Flask, request, jsonify
 import subprocess
-import os
 
-# Explicitamente define onde estão os arquivos estáticos e em qual rota eles serão servidos
+# Define a pasta estática e sua rota
 app = Flask(__name__, static_folder="static", static_url_path="/static")
 
 @app.route("/baixar", methods=["POST"])
@@ -12,11 +11,18 @@ def baixar():
     nome = "podcast"
 
     try:
+        # Baixa o áudio com user-agent e bypass de bloqueio
         subprocess.call(
-            f'yt-dlp --user-agent "Mozilla/5.0" --referer "https://www.youtube.com" '
-            f'-f bestaudio --extract-audio --audio-format mp3 {url} -o static/{nome}.mp3',
+            f'yt-dlp --force-ipv4 '
+            f'--user-agent "Mozilla/5.0" '
+            f'--referer "https://www.youtube.com" '
+            f'--extract-audio --audio-format mp3 '
+            f'--player-client android --no-playlist '
+            f'{url} -o static/{nome}.mp3',
             shell=True
         )
+
+        # Baixa o vídeo (opcional)
         subprocess.call(
             f'yt-dlp -f bestvideo {url} -o static/gameplay.mp4',
             shell=True
